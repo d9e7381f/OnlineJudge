@@ -250,6 +250,7 @@ def submission_list_page(request, page=1):
 
     # url中如果存在user_id参数,说明只显示这个人的提交,忽略其他参数
     user_id = request.GET.get("user_id", None)
+
     if user_id and request.user.admin_type == SUPER_ADMIN:
         submission_filter["user_id"] = user_id
         submissions = Submission.objects.filter(user_id=user_id, contest_id__isnull=True)

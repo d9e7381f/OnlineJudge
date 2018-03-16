@@ -20,7 +20,7 @@ from group.views import (GroupAdminAPIView, GroupMemberAdminAPIView,
 
 from admin.views import AdminTemplateView
 
-from problem.views import TestCaseUploadAPIView, TestCaseDownloadAPIView, ProblemTagAdminAPIView, ProblemAdminAPIView, OpenAPIProblemAPI
+from problem.views import TestCaseUploadAPIView, TestCaseDownloadAPIView, ProblemTagAdminAPIView, ProblemAdminAPIView, OpenAPIProblemAPI, ProblemTagAPI
 from submission.views import (SubmissionAPIView, SubmissionAdminAPIView, ContestSubmissionAPIView,
                               SubmissionShareAPIView, SubmissionRejudgeAdminAPIView, OpenAPISubmitCodeAPI)
 from judge_dispatcher.views import AdminJudgeServerAPIView
@@ -142,4 +142,13 @@ urlpatterns = [
     url(r'^rank/(?P<page>\d+)/$', "account.views.user_rank_page", name="user_rank_page"),
     url(r'^rank/$', "account.views.user_rank_page", name="user_rank_page"),
     url(r'^api/avatar/upload/', AvatarUploadAPIView.as_view(), name="avatar_upload_api"),
+
+    # 分割线
+    url(r'^problem/create/$', TemplateView.as_view(template_name="admin/admin.html"),
+        name="problem_create_page"),
+    #删除题目的url 用户需要为超级管理员或者删除自己创建的题目 需要参数problem_id eg:http://localhost:8000/problem/delete/?problem_id=1 method=delete
+    url(r'^problem/delete/$',ProblemAdminAPIView.as_view(),name="delete_problem"),
+    url(r'^api/tag/$',ProblemTagAPI.as_view(),name="getAllPTag")
+
+
 ]

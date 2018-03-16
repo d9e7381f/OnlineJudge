@@ -35,7 +35,7 @@ class CreateProblemSerializer(serializers.Serializer):
     hint = serializers.CharField(allow_blank=True)
     source = serializers.CharField(max_length=100, required=False, default=None)
     visible = serializers.BooleanField()
-
+    tagid = serializers.CharField(required=True)
 
 class ProblemTagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,3 +84,12 @@ class EditProblemSerializer(serializers.Serializer):
     samples = ProblemSampleSerializer()
     hint = serializers.CharField(allow_blank=True)
     visible = serializers.BooleanField()
+    ptag = serializers.CharField(required=True)
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length = 20)
+
+class EditTagSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length = 20)
+

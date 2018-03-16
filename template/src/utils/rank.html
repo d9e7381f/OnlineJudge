@@ -23,7 +23,7 @@
                 {% for rank in ranks %}
                     <tr>
                         <th scope="row">{{ forloop.counter |add:start_id }}</th>
-                        <td><a href="/user/{{ rank.user.username }}">{{ rank.user.username }}</a></td>
+                        <td><a href="/user/{{ rank.user.id }}">{{ rank.user.real_name }}</a></td>
                         <td>{% if rank.mood %}{{ rank.mood }}{% endif %}</td>
                         <td>{{ rank.accepted_problem_number }}</td>
                         <td>{{ rank.submission_number }}</td>

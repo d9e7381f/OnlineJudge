@@ -50,7 +50,7 @@
                                 <th scope="row">{% if item.rank_number %}{{ item.rank_number }}{% else %}-{% endif %}</th>
                                 <td>
                                 <a href="/contest/{{ contest.id }}/submissions/?user_id={{ item.user__id }}">
-                                    {{ item.user__username }}
+                                    {{ item.user__real_name }}
                                 </a>
                                     {% if show_real_name %}
                                         （{{ item.user__real_name }}）

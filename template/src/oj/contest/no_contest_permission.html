@@ -33,6 +33,9 @@
         {% ifequal reason "group_limited" %}
             <div class="alert alert-danger" role="alert">比赛仅指定小组可以参加，你不在这些小组中。</div>
         {% endifequal %}
+        {% ifequal reason "network_limited" %}
+            <div class="alert alert-danger" role="alert">比赛仅限定网段可以参加, 你不在该网段中.</div>
+        {% endifequal %}
         {% ifequal reason "contest_not_start" %}
             <div class="alert alert-danger" role="alert">比赛还没有开始。</div>
         {% endifequal %}

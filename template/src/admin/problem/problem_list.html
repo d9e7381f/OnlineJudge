@@ -29,8 +29,9 @@
             <td ms-text="el.visible?'可见':'不可见'"></td>
             <td>{{ el.total_accepted_number }}/{{ el.total_submit_number }}</td>
             <td>
-                <button class="btn-sm btn-info" ms-click="showEditProblemPage(el.id)">编辑</button>
-                <button class="btn-sm btn-info" ms-click="showProblemSubmissionPage(el.id)">提交</button>
+                <button class="btn-sm btn-success" ms-click="showEditProblemPage(el.id)">编辑</button>
+                <button class="btn-sm btn-info" ms-click="showProblemSubmissionPage(el.id)" style="display:none;">提交</button>
+                <button class="btn-sm btn-danger delete" ms-click="deleteProblemById(el.id)">删除</button>
             </td>
         </tr>
     </table>

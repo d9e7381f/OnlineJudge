@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{% show_website_info "website_name" %} - 首页</title>
 
-    <link href="/static/css/fullpage/jquery.fullPage.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/fullpage/jquery.fullPage.css?v=ac25a8">
     <link rel="shortcut icon" href="/static/img/favicon.ico">
     <style>
         html, textarea, input, option, select, button {
@@ -112,9 +112,9 @@
     </style>
     <link rel="stylesheet" href="/static/css/animate/animate.css">
 
-    <script src="/static/js/lib/jquery/jquery.js"></script>
+    <script src="/static/js/lib/jquery/jquery.js?v=65835c"></script>
 
-    <script src="/static/js/lib/fullpage/jquery.fullPage.min.js"></script>
+    <script src="/static/js/lib/fullpage/jquery.fullPage.min.js?v=a20e91"></script>
 
     <script type="text/javascript">
         $(document).ready(function () {
@@ -140,7 +140,7 @@
     {% if not request.user.is_authenticated %}
         <div id="login">
             <a href="/login/" class="login button">登录</a>
-            <a href="/register/" class="register button">注册</a>
+            <!-- <a href="/register/" class="register button">注册</a> -->
         </div>
     {% endif %}
 

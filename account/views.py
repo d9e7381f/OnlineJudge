@@ -47,6 +47,7 @@ class UserLoginAPIView(APIView):
         if serializer.is_valid():
             data = serializer.data
             user = auth.authenticate(username=data["username"], password=data["password"])
+            print user
             # 用户名或密码错误的话 返回None
             if user:
                 if not user.two_factor_auth:
@@ -68,7 +69,7 @@ class UserLoginAPIView(APIView):
             return serializer_invalid_response(serializer)
 
 
-#@login_required
+@login_required
 def logout(request):
     auth.logout(request)
     return http.HttpResponseRedirect("/")

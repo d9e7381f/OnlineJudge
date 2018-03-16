@@ -75,14 +75,42 @@
                             分类
                         </h3>
                     </div>
-                    <ul class="list-group">
-                        {% for item in tags %}
-                            <li class="list-group-item problem-tag">
-                            <a class="tag-link" href="/problems/?tag={{ item.name }}">{{ item.name }}</a>
-                            <span class="badge">{{ item.problem_number }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
+{#                    <ul class="list-group">#}
+{#                        {% for item in tags %}#}
+{#                            <li class="list-group-item problem-tag">#}
+{#                            <a class="tag-link" href="/problems/?tag={{ item.name }}">{{ item.name }}</a>#}
+{#                            <span class="badge">{{ item.problem_number }}</span>#}
+{#                            </li>#}
+{#                        {% endfor %}#}
+{#                    </ul>#}
+
+                <div class="panel-group" id="panel-384686">
+                    {% for item in ptag %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                             <a class="panel-title collapsed" data-toggle="collapse" data-parent="#panel-{{ item.name }}" href="#panel-element-{{ item.name }}">{{ item.name }}</a>
+                        </div>
+                        <div id="panel-element-{{ item.name }}" class="panel-collapse collapse">
+
+                         <ul class="list-group">
+                            {% for citem in ctag %}
+                                {% if citem.pid_id == item.id %}
+                                     <li class="list-group-item problem-tag">
+                                         <a class="tag-link" href="/problems/?tag={{ citem.name }}&&ptag={{ item.id }}">{{ citem.name }}</a>
+                                         <span class="badge">{{ citem.problem_number }}</span>
+                                     </li>
+                                {% endif %}
+                            {% endfor %}
+                         </ul>
+
+
+                        </div>
+                    </div>
+                    {% endfor %}
+			    </div>
+
+
+                    </div>
                 </div>
 
             </div>

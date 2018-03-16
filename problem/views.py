@@ -1,4 +1,5 @@
 # coding=utf-8
+import sys
 import zipfile
 import re
 import os
@@ -15,14 +16,20 @@ from django.conf import settings
 from rest_framework.views import APIView
 
 from account.models import SUPER_ADMIN, User
-from account.decorators import super_admin_required, admin_required
+from account.decorators import super_admin_required, admin_required,login_required
 from contest.models import ContestProblem
 from utils.shortcuts import (serializer_invalid_response, error_response,
                              success_response, paginate, rand_str, error_page)
 from .serizalizers import (CreateProblemSerializer, EditProblemSerializer, ProblemSerializer,
-                           ProblemTagSerializer, OpenAPIProblemSerializer)
+                           ProblemTagSerializer, OpenAPIProblemSerializer, EditTagSerializer, CreateTagSerializer)
 from .models import Problem, ProblemTag
 from .decorators import check_user_problem_permission
+
+# python2.7 编码问题解决
+if sys.getdefaultencoding() != 'utf-8':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
 
 logger = logging.getLogger("app_info")
 
@@ -36,6 +43,60 @@ def problem_page(request, problem_id):
     except Problem.DoesNotExist:
         return error_page(request, u"题目不存在")
     return render(request, "oj/problem/problem.html", {"problem": problem, "samples": json.loads(problem.samples)})
+
+
+class ProblemTagAPI(APIView):
+    def get(self,request):
+        """
+        获取所有父标签
+        """
+        return success_response(ProblemTagSerializer(ProblemTag.objects.all().filter(tag_type = 1), many=True).data)
+
+    def post(self,request):
+        """
+        新增标签
+        """
+        serializer = CreateTagSerializer(data = request.data)
+        if serializer.is_valid():
+            data = serializer.data
+            try:
+                ProblemTag.objects.get(name = data["name"])
+                return error_response(u"添加失败，存在重复的标签")
+            except ProblemTag.DoesNotExist:
+                pass
+            ProblemTag.objects.create(name = data["name"],tag_type = 1)
+            return success_response(u"标签创建成功")
+        return error_response(u"上传失败")
+
+    def put(self,request):
+        """
+        编辑标签
+        """
+        serializer = EditTagSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.data
+            tag = ProblemTag.objects.get(id=data['id'])
+            tag.name = data['name']
+            tag.save()
+            return success_response(u'编辑成功')
+        else:
+            return error_response(u'编辑失败')
+
+    def delete(self,request):
+        """
+        根据id删除标签
+        """
+        tag_id = request.GET.get("ptag", None)
+        try:
+            ptag = ProblemTag.objects.get(id=tag_id)
+        except ProblemTag.DoesNotExist:
+            return error_response(u"无此标签")
+        ctag = ProblemTag.objects.filter(pid=ptag)
+        if ctag.count() == 0:
+            ProblemTag.delete(ptag);
+            return success_response(u"删除标签成功")
+        else:
+            return error_response(u"该标签还包含子标签")
 
 
 class OpenAPIProblemAPI(APIView):
@@ -73,7 +134,8 @@ class ProblemAdminAPIView(APIView):
             return None
         return hashlib.md5(code.encode("utf-8")).hexdigest()
 
-    @super_admin_required
+    # @super_admin_required
+    @login_required
     def post(self, request):
         """
         题目发布json api接口
@@ -81,6 +143,7 @@ class ProblemAdminAPIView(APIView):
         request_serializer: CreateProblemSerializer
         response_serializer: ProblemSerializer
         """
+        # 数据过滤 小坑
         serializer = CreateProblemSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.data
@@ -106,15 +169,20 @@ class ProblemAdminAPIView(APIView):
                                              created_by=request.user,
                                              hint=data["hint"],
                                              visible=data["visible"])
-            for tag in data["tags"]:
-                try:
-                    tag = ProblemTag.objects.get(name=tag)
-                except ProblemTag.DoesNotExist:
-                    tag = ProblemTag.objects.create(name=tag)
-                problem.tags.add(tag)
-            return success_response(ProblemSerializer(problem).data)
-        else:
-            return serializer_invalid_response(serializer)
+
+            tagid = data["tagid"]
+            ptag = ProblemTag.objects.get(id=tagid)
+            if not ptag is None :
+                for tag in data["tags"]:
+                    try:
+                        tag = ProblemTag.objects.get(name=tag)
+                    except ProblemTag.DoesNotExist:
+                        tag = ProblemTag.objects.create(name=tag,pid=ptag)
+                    problem.tags.add(tag)
+                return success_response(ProblemSerializer(problem).data)
+            else:
+                return serializer_invalid_response(serializer)
+
 
     @check_user_problem_permission
     def put(self, request):
@@ -147,19 +215,33 @@ class ProblemAdminAPIView(APIView):
             problem.visible = data["visible"]
             problem.last_update_time = now()
 
+            pTagId = data["ptag"]
+
             # 删除原有的标签的对应关系
             problem.tags.remove(*problem.tags.all())
             # 重新添加所有的标签
+            pTag = ProblemTag.objects.get(id=pTagId)
+
+            if pTag is None:
+                print("none")
+            else:
+                print("not none")
+
             for tag in data["tags"]:
-                try:
-                    tag = ProblemTag.objects.get(name=tag)
-                except ProblemTag.DoesNotExist:
-                    tag = ProblemTag.objects.create(name=tag)
-                problem.tags.add(tag)
+                print(tag)
 
-            problem.save()
+            if not pTag is None:
+                for tag in data["tags"]:
+                    try:
+                        tag = ProblemTag.objects.get(name=tag,pid=pTag)
+                    except ProblemTag.DoesNotExist:
+                        print("create new Tag")
+                        tag = ProblemTag.objects.create(name=tag,pid=pTag)
+                    problem.tags.add(tag)
 
-            return success_response(ProblemSerializer(problem).data)
+                problem.save()
+
+                return success_response(ProblemSerializer(problem).data)
         else:
             return serializer_invalid_response(serializer)
 
@@ -182,7 +264,7 @@ class ProblemAdminAPIView(APIView):
                 return error_response(u"题目不存在")
 
         # 获取问题列表
-        problems = Problem.objects.all().order_by("-create_time")
+        problems = Problem.objects.all().order_by("-id")
 
         if request.user.admin_type != SUPER_ADMIN:
             problems = problems.filter(created_by=request.user)
@@ -193,9 +275,25 @@ class ProblemAdminAPIView(APIView):
         keyword = request.GET.get("keyword", None)
         if keyword:
             problems = problems.filter(Q(title__contains=keyword) |
-                                       Q(description__contains=keyword))
+                                       Q(description__contains=keyword) |
+                                       Q(id__contains=keyword))
 
         return paginate(request, problems, ProblemSerializer)
+
+    @login_required
+    def delete(self,request):
+        problem_id = request.GET.get("problem_id",None)
+        # 超级管理员可以删除非自创作的问题
+        if request.user.admin_type == SUPER_ADMIN:
+            problem = Problem.objects.filter(id=problem_id)
+        else:
+            problem = Problem.objects.filter(id=problem_id,created_by_id=request.user.id)
+
+        try:
+            problem.delete();
+        except Problem.DoesNotExist:
+            return error_response(u"题目不存在")
+        return success_response(u"题目删除成功")
 
 
 class TestCaseUploadAPIView(APIView):
@@ -398,7 +496,7 @@ def problem_list_page(request, page=1):
     # 搜索的情况
     keyword = request.GET.get("keyword", "").strip()
     if keyword:
-        problems = problems.filter(Q(title__contains=keyword) | Q(description__contains=keyword))
+        problems = problems.filter(Q(title__contains=keyword) | Q(description__contains=keyword) | Q(id__contains=keyword))
 
     difficulty_order = request.GET.get("order_by", None)
     if difficulty_order:
@@ -413,9 +511,11 @@ def problem_list_page(request, page=1):
 
     # 按照标签筛选
     tag_text = request.GET.get("tag", None)
-    if tag_text:
+    ptag_id = request.GET.get("ptag",None)
+    if tag_text and ptag_id:
         try:
-            tag = ProblemTag.objects.get(name=tag_text)
+            ptag = ProblemTag.objects.get(id = ptag_id)
+            tag = ProblemTag.objects.get(name=tag_text,pid = ptag)
         except ProblemTag.DoesNotExist:
             return error_page(request, u"标签不存在")
         problems = tag.problem_set.all().filter(visible=True)
@@ -442,8 +542,15 @@ def problem_list_page(request, page=1):
     tags = ProblemTag.objects.annotate(problem_number=Count("problem")).filter(problem_number__gt=0).order_by(
         "-problem_number")
 
+    ptag = ProblemTag.objects.all().filter(tag_type = 1)
+    # ctag = ProblemTag.objects.all().filter(tag_type = 0)
+    ctag = ProblemTag.objects.annotate(problem_number=Count("problem")).filter(problem_number__gt=0,tag_type= 0).order_by(
+        "-problem_number")
+
     return render(request, "oj/problem/problem_list.html",
                   {"problems": current_page, "page": int(page),
                    "previous_page": previous_page, "next_page": next_page,
                    "keyword": keyword, "tag": tag_text,
+                   "ptag":ptag,
+                   "ctag":ctag,
                    "tags": tags, "difficulty_order": difficulty_order})

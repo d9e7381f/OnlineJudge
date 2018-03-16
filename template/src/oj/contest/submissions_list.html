@@ -80,7 +80,8 @@
                         <th scope="row">
                             <a href="/contest/{{ item.contest_id }}/problem/{{ item.problem_id }}/">{{ item.title }}</a>
                         </th>
-                        <td>{{ item.user_id|get_username }}</td>
+                        <!-- <td>{{ item.user_id|get_username }}</td> -->
+                        <td>{{ item.user_id|get_real_name }}</td>
                         <td>{{ item.create_time }}</td>
                         <td>
                             {{ item.language|translate_language }}

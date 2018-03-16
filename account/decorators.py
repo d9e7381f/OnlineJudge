@@ -31,7 +31,7 @@ class BasePermissionDecorator(object):
             return self.func(*args, **kwargs)
         else:
             if self.request.is_ajax():
-                return error_response(u"请先登录")
+                return error_response(u"无此权限")
             else:
                 return HttpResponseRedirect("/login/?__from=" + urllib.quote(self.request.path))
 

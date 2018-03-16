@@ -2,7 +2,8 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
         "csrfToken", "tagEditor", "validator", "jqueryUI", "editorComponent", "testCaseUploader", "spj"],
     function ($, avalon, editor, uploader, bsAlert, csrfTokenHeader) {
         avalon.ready(function () {
-
+            var vm;
+            var tag_pid;
             $("#add-problem-form").validator()
                 .on('submit', function (e) {
                     if (!e.isDefaultPrevented()) {
@@ -54,6 +55,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                             source: vm.source,
                             visible: vm.visible,
                             tags: tags,
+                            tagid: vm.ptag,
                             input_description: vm.inputDescription,
                             output_description: vm.outputDescription,
                             difficulty: vm.difficulty,
@@ -93,7 +95,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                 });
 
             if (avalon.vmodels.addProblem) {
-                var vm = avalon.vmodels.addProblem;
+                vm = avalon.vmodels.addProblem;
                 vm.title = "";
                 vm.timeLimit = 1000;
                 vm.memoryLimit = 128;
@@ -101,6 +103,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                 vm.visible = true;
                 vm.difficulty = "1";
                 vm.tags = [];
+                    vm.tagList = [];
                 vm.inputDescription = "";
                 vm.outputDescription = "";
                 vm.testCaseId = "";
@@ -110,7 +113,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                 vm.uploadProgress = 0;
             }
             else {
-                var vm = avalon.define({
+                vm = avalon.define({
                     $id: "addProblem",
                     title: "",
                     timeLimit: 1000,
@@ -119,6 +122,8 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                     visible: true,
                     difficulty: "1",
                     tags: [],
+                    tagList: [],
+                    ptag: 0,
                     inputDescription: "",
                     outputDescription: "",
                     testCaseId: "",
@@ -144,6 +149,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                             vm.samples.remove(sample);
                         }
                     },
+
                     toggleSample: function (sample) {
                         sample.visible = !sample.visible;
                     },
@@ -151,11 +157,43 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                         if (item.visible)
                             return "折叠";
                         return "展开";
+                    },
+                    onSelect: function (item) {
+                        var ptag = ($(item).val().split("."))[0];
+                        vm.ptag = ptag;
+                        getChildrenTagByPid(ptag);
+
                     }
                 });
             }
 
-            var tagAutoCompleteList = [];
+            //tag数据
+            var tagData = [];
+
+            function getChildrenTagByPid(pid) {
+                var childrenTag = [];
+                 vm.ptag = pid;
+                for(var i = 0 ; i < tagData.length; i++){
+                    if(tagData[i].pid == pid){
+                        childrenTag.push(tagData[i].name);
+                    }
+                }
+
+                $("#tags").tagEditor({
+                            autocomplete: {
+                                delay: 0, // show suggestions immediately
+                                position: {collision: 'flip'}, // automatic menu position up/down
+                                source: childrenTag
+                            }
+                        });
+                //移除多余tag-editor节点 最新的节点为0 所以不删除0节点
+                var tags = $(".tag-editor");
+                if(tags.length >1){
+                    for(var i=1;i<tags.length;i++){
+                        $(tags[i]).remove();
+                    }
+                }
+            }
 
             $.ajax({
                 beforeSend: csrfTokenHeader,
@@ -164,22 +202,19 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                 method: "get",
                 success: function (data) {
                     if (!data.code) {
+                        tagData = data.data;
                         for (var i = 0; i < data.data.length; i++) {
-                            tagAutoCompleteList.push(data.data[i].name);
-                        }
-                        $("#tags").tagEditor({
-                            autocomplete: {
-                                delay: 0, // show suggestions immediately
-                                position: {collision: 'flip'}, // automatic menu position up/down
-                                source: tagAutoCompleteList
+                            if(data.data[i].tag_type === 1){
+                                vm.tagList.push(data.data[i]);
                             }
-                        });
+                        }
+                        getChildrenTagByPid(vm.tagList[0].id);
+
                     }
                     else {
                         bsAlert(data.data);
                     }
                 }
-
             });
         });
         avalon.scan();

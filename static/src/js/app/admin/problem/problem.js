@@ -1,5 +1,6 @@
 require(["jquery", "avalon", "csrfToken", "bsAlert", "pager"], function ($, avalon, csrfTokenHeader, bsAlert) {
 
+
     avalon.ready(function () {
         if(avalon.vmodels.problemList){
             vm = avalon.vmodels.problemList;
@@ -8,7 +9,6 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "pager"], function ($, aval
             var vm = avalon.define({
                 $id: "problemList",
                 problemList: [],
-
                 keyword: "",
                 showVisibleOnly: false,
 
@@ -25,6 +25,10 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "pager"], function ($, aval
                 showProblemSubmissionPage: function(problemId){
                     avalon.vmodels.admin.problemId = problemId;
                     avalon.vmodels.admin.template_url = "template/problem/submission_list.html";
+                },
+                deleteProblemById: function (problemId) {
+                    avalon.vmodels.admin.problemId = problemId;
+                    avalon.vmodels.admin.template_url = deleteAjax(problemId);
                 },
 
                 search: function(){
@@ -44,6 +48,7 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "pager"], function ($, aval
                 url += "&keyword=" + vm.keyword;
             if (vm.showVisibleOnly)
                 url += "&visible=true";
+
             $.ajax({
                 url: url,
                 dataType: "json",
@@ -59,8 +64,30 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "pager"], function ($, aval
                 }
             });
         }
+        function deleteAjax(problem_id) {
+            // 获取所要删除问题的id
+            if(confirm("确定删除该题目")){
+                $.ajax({
+                    url: "/problem/delete/?problem_id="+problem_id,
+                    method: "delete",
+                    dataType: "json",
+                    success: function (data) {
+                        if(!data.code){
+                            bsAlert("题目删除成功");
+                            //删除成功后刷新页面 重新请求题目列表
+                            window.location.reload();
+                        }
+                    },
+                    error: function (data) {
+                        bsAlert("请求失败");
+                    }
+                });
+            }
 
-
+        }
     });
+
     avalon.scan();
+
 });
+

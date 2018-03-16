@@ -2,6 +2,8 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
         "csrfToken", "tagEditor", "validator", "jqueryUI", "editorComponent", "testCaseUploader", "spj"],
     function ($, avalon, editor, uploader, bsAlert, csrfTokenHeader) {
 
+        var ajaxData = {};
+        var ptagid ;
         avalon.ready(function () {
 
             $("#edit-problem-form").validator()
@@ -43,7 +45,8 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                             bsAlert("请填写Special Judge的代码");
                             return false;
                         }
-                        var ajaxData = {
+
+                        ajaxData = {
                             id: avalon.vmodels.admin.problemId,
                             title: vm.title,
                             description: avalon.vmodels.problemDescriptionEditor.content,
@@ -55,6 +58,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                             source: vm.source,
                             visible: vm.visible,
                             tags: tags,
+                            ptag: ptagid,
                             input_description: vm.inputDescription,
                             output_description: vm.outputDescription,
                             difficulty: vm.difficulty,
@@ -71,7 +75,6 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                                 output: vm.samples.$model[i].output
                             });
                         }
-
                         $.ajax({
                             beforeSend: csrfTokenHeader,
                             url: "/api/admin/problem/",
@@ -103,6 +106,8 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                     timeLimit: -1,
                     memoryLimit: -1,
                     samples: [],
+                    tagList:[],
+                    ptag: "",
                     visible: true,
                     difficulty: "1",
                     inputDescription: "",
@@ -140,9 +145,49 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                     },
                     showProblemListPage: function () {
                         avalon.vmodels.admin.template_url = "template/problem/problem_list.html";
+                    },
+                    onSelect: function (item) {
+                        var ptag = ($(item).val().split("."))[0];
+                        getChildrenTagByPid(ptag);
+
+                    },
+                    onLoad:function () {
+                        console.log("ptag:"+vm.ptag);
+                        console.log("loadView");
                     }
                 });
             }
+
+            //tag数据
+            var tagData = [];
+            var initTag = [];
+
+            function getChildrenTagByPid(pid) {
+                var childrenTag = [];
+                vm.ptag = pid;
+                ptagid = pid ;
+                for(var i = 0 ; i < tagData.length; i++){
+                    if(tagData[i].pid == pid){
+                        childrenTag.push(tagData[i].name);
+                    }
+                }
+                $("#tags").tagEditor({
+                    initialTags: initTag,
+                    autocomplete: {
+                        delay: 0, // show suggestions immediately
+                        position: {collision: 'flip'}, // automatic menu position up/down
+                        source: childrenTag
+                    }
+                 });
+                //移除多余tag-editor节点 最新的节点为0 所以不删除0节点
+                var tags = $(".tag-editor");
+                if(tags.length >1){
+                    for(var i=1;i<tags.length;i++){
+                        $(tags[i]).remove();
+                    }
+                }
+            }
+
 
             $.ajax({
                 url: "/api/admin/problem/?problem_id=" + avalon.vmodels.admin.problemId,
@@ -159,6 +204,10 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                         vm.timeLimit = problem.time_limit;
                         vm.memoryLimit = problem.memory_limit;
                         vm.samples = [];
+                        var problemTags = problem.tags;
+                        for (var j = 0; j < problem.tags.length; j++) {
+                            initTag.push(problemTags[j].name);
+                        }
                         for (var i = 0; i < problem.samples.length; i++) {
                             vm.samples.push({
                                 input: problem.samples[i].input,
@@ -179,34 +228,38 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert",
                         spjVM.spjCode = problem.spj_code;
 
                         vm.source = problem.source;
-                        var problemTags = problem.tags;
                         $.ajax({
+                            beforeSend: csrfTokenHeader,
                             url: "/api/admin/tag/",
                             dataType: "json",
                             method: "get",
                             success: function (data) {
                                 if (!data.code) {
-                                    var tagAutoCompleteList = [], tags = [];
-                                    for (var i = 0; i < data.data.length; i++) {
-                                        tagAutoCompleteList.push(data.data[i].name);
-                                    }
-                                    for (var j = 0; j < problem.tags.length; j++) {
-                                        tags.push(problemTags[j].name);
-                                    }
-                                    $("#tags").tagEditor({
-                                        initialTags: tags,
-                                        autocomplete: {
-                                            delay: 0,
-                                            position: {collision: 'flip'},
-                                            source: tagAutoCompleteList
+                                    tagData = data.data;
+                                    if(vm.tagList.length == 0){
+                                        for (var i = 0; i < data.data.length; i++) {
+                                            if(data.data[i].tag_type === 1){
+                                                vm.tagList.push(data.data[i]);
+                                            }
                                         }
-                                    });
+                                    }
+                                    var ptagid;
+                                    if(problemTags.length === 0){
+                                        ptagid = vm.tagList[0].id;
+                                    }else{
+                                        ptagid = problemTags[0].pid;
+                                    }
+                                    getChildrenTagByPid(ptagid);
+                                    for(var j=0;j<vm.tagList.length;j++){
+                                        if(vm.tagList[j].id === ptagid)
+                                            vm.ptag = vm.tagList[j];
+                                    }
+                                    vm.tagList.remove(vm.ptag);
                                 }
                                 else {
                                     bsAlert(data.data);
                                 }
                             }
-
                         });
                     }
                 }

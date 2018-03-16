@@ -28,7 +28,7 @@ require(["jquery", "bsAlert", "csrfToken", "validator"], function ($, bsAlert, c
                             return temp.indexOf("&")>=0 ? temp.split("&")[0] : temp;
                         }
                         var from = getLocationVal("__from");
-                        if(from != "" && from.substring(0, 1) == "/"){
+                        if(from != ""){
                             window.location.href = from;
                         }
                         else{

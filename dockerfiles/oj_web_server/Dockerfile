@@ -1,12 +1,15 @@
-FROM ubuntu:16.04
+FROM python:2.7
 ENV PYTHONBUFFERED 1
-ADD . /code
+RUN mkdir -p /code/log /code/test_case /code/upload
 WORKDIR /code
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y nginx python-pip \ 
-       nodejs libmysqlclient-dev python-setuptools build-essential python-dev \
-    && pip install -i https://pypi.douban.com/simple -r dockerfiles/oj_web_server/requirements.txt \
-    && apt-get purge -y --auto-remove build-essential python-dev\
-    && rm -rf /var/lib/apt/lists/*
-RUN python tools/release_static.py
+ADD requirements.txt /code/
+RUN pip install -i http://pypi.douban.com/simple  -r requirements.txt --trusted-host pypi.douban.com
+RUN rm /etc/apt/sources.list
+ADD sources.list /etc/apt/
+RUN curl -sL https://deb.nodesource.com/setup | bash -
+RUN apt-get -y install nodejs
+ADD gunicorn.conf /etc
+ADD supervisord.conf /etc
+ADD task_queue.conf /etc
+EXPOSE 8080
 CMD bash /code/dockerfiles/oj_web_server/run.sh

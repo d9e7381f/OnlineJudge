@@ -41,10 +41,6 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "pager", "validator"],
                         vm.is_forbidden = user.is_forbidden ? true: false;
 
                         vm.isEditing = true;
-                    },
-                    search: function () {
-                        getPage(1);
-                        avalon.vmodels.userPager.currentPage = 1;
                     }
                 });
             }

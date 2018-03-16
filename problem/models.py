@@ -5,8 +5,17 @@ from account.models import User
 from utils.models import RichTextField
 
 
-class ProblemTag(models.Model):
+class AbstractProblemTag(models.Model):
     name = models.CharField(max_length=30)
+    # 标签的类型 0为根标签 1为叶子标签 定义类似二叉树
+    tag_type = models.IntegerField(default= 0)
+
+    class Meta:
+        abstract = True
+
+class ProblemTag(AbstractProblemTag):
+    # pid 父标签的id
+    pid = models.ForeignKey("ProblemTag",default=-1)
 
     class Meta:
         db_table = "problem_tag"

@@ -30,7 +30,8 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "bootstrap"], function ($, 
             {
                 name: "通用",
                 children: [{name: "公告管理", hash: "#announcement/announcement"},
-                    {name: "用户管理", hash: "#user/user_list"}]
+                    {name: "用户管理", hash: "#user/user_list"},
+                    {name: '标签管理',hash: '#tag/tag_list'}]
             },
             {
                 name: "题目管理",
@@ -60,10 +61,27 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "bootstrap"], function ($, 
                     {name: "创建比赛", hash: "#contest/add_contest"}]
             },
             {
+                name: "题目管理",
+                children: [{name: "题目列表", hash: "#problem/problem_list"},
+                    {name: "创建题目", hash: "#problem/add_problem"}]
+            },
+            {
                 name: "小组管理",
                 children: [{name: "小组列表", hash: "#group/group"},
                     {name: "加入小组请求", hash: "#group/join_group_request_list"}]
             }
+        ];
+
+        var userNav=[
+            {
+                name: "首页",
+                children: [{name: "主页", hash: "#index/index"}]
+            },
+            {
+                name: "题目管理",
+                children: [{name: "题目列表", hash: "#problem/problem_list"},
+                    {name: "创建题目", hash: "#problem/add_problem"}]
+            },
         ];
 
         var vm = avalon.define({
@@ -98,8 +116,10 @@ require(["jquery", "avalon", "csrfToken", "bsAlert", "bootstrap"], function ($, 
                     if (data.data.admin_type == 2) {
                         vm.adminNavList = superAdminNav;
                     }
-                    else {
+                    else if(data.data.admin_type == 1 ){
                         vm.adminNavList = adminNav;
+                    }else{
+                        vm.adminNavList = userNav;
                     }
                 }
             }

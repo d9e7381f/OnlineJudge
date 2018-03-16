@@ -14,7 +14,7 @@
     </title>
 
     <!-- global css begin -->
-    <link href="/static/css/oj.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/oj.css?v=9265de">
     <!-- global css end -->
 
     <!-- custom css begin -->
@@ -62,14 +62,17 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                            aria-expanded="false">
-                            {{ request.user.username }}
+                            {{ request.user.real_name }}
                             <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            {% if request.user.admin_type > 0 %}
-                                <li><a href="/admin/">后台管理</a></li>
+{#                            {% if request.user.admin_type > 0 %}#}
+{#                                <li><a href="/admin/">后台管理</a></li>#}
+{#                                <li role="separator" class="divider"></li>#}
+{#                            {% endif %}#}
+                             <li><a href="/admin/">后台管理</a></li>
                                 <li role="separator" class="divider"></li>
-                            {% endif %}
-                            <li><a href="/user/{{ request.user.username }}/">我的主页</a></li>
+                            <li><a href="/user/{{ request.user.id }}/">我的主页</a></li>
+
                             <li><a href="/submissions/?my=true">我的提交</a></li>
                             <li><a href="/account/settings/">设置</a></li>
                             <li role="separator" class="divider"></li>
@@ -95,9 +98,9 @@
 {% block body %}{% endblock %}
 <!-- custom body end -->
 
-<script src="/static/js/config.js"></script>
-<script src="/static/js/require.js"></script>
-<script src="/static/js/lib/bootstrap/bootstrap.js"></script>
+<script src="/static/js/config.js?v=08045b"></script>
+<script src="/static/js/require.js?v=01b68e"></script>
+<script src="/static/js/lib/bootstrap/bootstrap.js?v=a6458f"></script>
 {% block js_block %}{% endblock %}
 <!-- footer begin -->
 <div class="footer">

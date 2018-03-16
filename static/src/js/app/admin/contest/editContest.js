@@ -23,6 +23,8 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert", "csrfToken", "date
                             selectedGroups.push(vm.allGroups[i].id);
                         }
                     }
+		    if (vm.restricted_network)
+                        ajaxData.restricted_network = vm.restricted_network;
                     if (vm.password) {
                         ajaxData.password = vm.password;
                         ajaxData.contest_type = 3;
@@ -79,6 +81,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert", "csrfToken", "date
                 showGlobalViewRadio: true,
                 realTimeRank: true,
                 visible: false,
+		restricted_network: "",
                 showContestListPage: function () {
                     avalon.vmodels.admin.template_url = "template/contest/contest_list.html";
                 },
@@ -139,6 +142,7 @@ require(["jquery", "avalon", "editor", "uploader", "bsAlert", "csrfToken", "date
                                         vm.startTime = contest.start_time.substring(0, 16).replace("T", " ");
                                         vm.endTime = contest.end_time.substring(0, 16).replace("T", " ");
                                         vm.password = contest.password;
+					vm.restricted_network = contest.restricted_network;
                                         if (contest.contest_type == 0 || contest.contest_type == 3) { //contest_type == 0, 小组内比赛
                                             vm.isGlobal = false;
                                             for (var i = 0; i < vm.allGroups.length; i++) {

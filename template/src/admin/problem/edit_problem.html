@@ -52,7 +52,18 @@
             </label>
         </div>
         <div id="tag" class="col-md-6">
-            <label>标签</label><br>
+             <label>标签(按回车创建)</label><br>
+            一级标签
+            <select id="ptag" ms-change="onSelect(this)">
+                <option selected="selected">{{ ptag.id }}.{{ ptag.name }}</option>
+                 <option ms-repeat="tagList">
+
+                    {{ el.id }}.{{ el.name }}
+                </option>
+
+            </select>
+            <br/>
+            二级标签
             <input type="text" id="tags">
         </div>
         <div class="col-md-12 form-group">
@@ -121,5 +132,4 @@
         </div>
     </form>
 </div>
-
 <script src="/static/js/app/admin/problem/editProblem.js"></script>
